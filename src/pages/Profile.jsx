@@ -1,19 +1,31 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Plus, Linkedin, Github, Globe } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import PageHeader from '../components/PageHeader'
 import ProfileCard from '../components/ProfileCard'
 import SkillTag from '../components/SkillTag'
-import { profileSkills as initialSkills } from '../data/mockData'
+import Button from '../components/Button'
+import { userApi } from '../api/userApi'
 
 const tabs = ['About', 'Skills', 'Experience', 'Education', 'Projects', 'Social Links']
 
 export default function Profile() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('Skills')
-  const [profileSkills, setProfileSkills] = useState(initialSkills)
+  const [profileSkills, setProfileSkills] = useState([])
   const [newSkill, setNewSkill] = useState('')
   const [showInput, setShowInput] = useState(false)
+  const [profileData, setProfileData] = useState(null)
+  const [saveMessage, setSaveMessage] = useState('')
+
+  useEffect(() => {
+    userApi.getProfile()
+      .then((data) => {
+        setProfileData(data)
+        setProfileSkills(data.skills || [])
+      })
+      .catch(() => setProfileSkills([]))
+  }, [])
 
   const addSkill = () => {
     const trimmed = newSkill.trim()
@@ -28,6 +40,16 @@ export default function Profile() {
     setProfileSkills(profileSkills.filter((s) => s !== skill))
   }
 
+  const saveProfile = async () => {
+    try {
+      const updated = await userApi.updateProfile({ skills: profileSkills })
+      setProfileData(updated)
+      setSaveMessage('Profile saved')
+    } catch (error) {
+      setSaveMessage(error.message)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-bg">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -35,9 +57,9 @@ export default function Profile() {
         <PageHeader title="Profile & Skills" onMenuClick={() => setSidebarOpen(true)} />
 
         <ProfileCard
-          name="Gull Abbas"
-          role="Frontend Developer"
-          location="Lahore, Pakistan"
+          name={profileData?.name || 'Gull Abbas'}
+          role={profileData?.title || 'Frontend Developer'}
+          location={profileData?.location || 'Lahore, Pakistan'}
           avatar="https://i.pravatar.cc/200?img=12"
         />
 
@@ -86,6 +108,11 @@ export default function Profile() {
                       </button>
                     )}
                   </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Button onClick={saveProfile} size="sm">Save Profile</Button>
+                  {saveMessage && <span className="text-xs text-subtext">{saveMessage}</span>}
                 </div>
 
                 <div>
