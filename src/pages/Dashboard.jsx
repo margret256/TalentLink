@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Eye, FileCheck2, Bookmark, MessageSquare, Bookmark as BookmarkIcon, Sparkles } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
 import Button from '../components/Button'
-import { recentApplications, opportunitiesForYou, skills, activityFeed } from '../data/mockData'
+import { userApi } from '../api/userApi'
 
 const statusColors = {
   Pending: 'bg-amber-50 text-amber-600',
@@ -15,6 +15,18 @@ const statusColors = {
 
 export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [dashboardData, setDashboardData] = useState(null)
+
+  useEffect(() => {
+    userApi.getDashboard()
+      .then((data) => setDashboardData(data))
+      .catch(() => setDashboardData(null))
+  }, [])
+
+  const recentApplications = dashboardData?.recentApplications || []
+  const opportunitiesForYou = dashboardData?.opportunities || []
+  const skills = dashboardData?.skills || []
+  const activityFeed = dashboardData?.activityFeed || []
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -117,7 +129,7 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl border border-border shadow-card p-5">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-maintext">Activity Feed</h3>
-              <a href="#" className="text-xs text-primary font-medium">View all</a>
+              <Link to="/applications" className="text-xs text-primary font-medium">View all</Link>
             </div>
             <div className="space-y-4">
               {activityFeed.map((a) => (
