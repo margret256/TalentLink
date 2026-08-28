@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { SlidersHorizontal, ChevronLeft, ChevronRight } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import PageHeader from '../components/PageHeader'
 import SearchBar from '../components/SearchBar'
 import JobCard from '../components/JobCard'
-import { jobs } from '../data/mockData'
+import { jobsApi } from '../api/jobsApi'
 
 export default function Opportunities() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -13,6 +13,17 @@ export default function Opportunities() {
   const [location, setLocation] = useState('All Locations')
   const [jobType, setJobType] = useState('Job Type')
   const [page, setPage] = useState(1)
+  const [jobs, setJobs] = useState([])
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    jobsApi.getAll()
+      .then((data) => setJobs(data || []))
+      .catch((error) => {
+        setJobs([])
+        setLoadError(error.message)
+      })
+  }, [])
 
   const filtered = useMemo(() => {
     return jobs.filter((j) => {
@@ -25,7 +36,7 @@ export default function Opportunities() {
       const matchesType = jobType === 'Job Type' || j.type === jobType
       return matchesQuery && matchesLocation && matchesType
     })
-  }, [query, location, jobType])
+  }, [jobs, query, location, jobType, category])
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -64,6 +75,8 @@ export default function Opportunities() {
             </div>
           </div>
         </div>
+
+        {loadError && <p className="text-sm text-red-500 mb-4">{loadError}</p>}
 
         <div className="space-y-4">
           {filtered.length > 0 ? (
