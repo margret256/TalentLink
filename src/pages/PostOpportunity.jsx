@@ -1,7 +1,10 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Briefcase, Check } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
+import EmployerSidebar from '../components/EmployerSidebar'
 import Button from '../components/Button'
+import { jobsApi } from '../api/jobsApi'
 
 const steps = [
   { id: 1, label: 'Basic Information' },
@@ -12,6 +15,7 @@ const steps = [
 ]
 
 export default function PostOpportunity() {
+  const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({
@@ -26,15 +30,39 @@ export default function PostOpportunity() {
     salaryMax: '',
     deadline: '',
   })
+  const [isPublishing, setIsPublishing] = useState(false)
+  const [publishError, setPublishError] = useState('')
+  const isEmployer = localStorage.getItem('talentlink_user_role') === 'employer'
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value })
 
   const next = () => setStep((s) => Math.min(s + 1, 5))
   const back = () => setStep((s) => Math.max(s - 1, 1))
 
+  const submitOpportunity = async () => {
+    if (!form.title.trim() || !form.description.trim() || !form.location.trim()) {
+      setPublishError('Please complete the job title, description, and location before publishing.')
+      return
+    }
+    setIsPublishing(true)
+    setPublishError('')
+    try {
+      await jobsApi.postOpportunity(form)
+      navigate('/employer/dashboard')
+    } catch (error) {
+      setPublishError(error.message)
+    } finally {
+      setIsPublishing(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-bg">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {isEmployer ? (
+        <EmployerSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      ) : (
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      )}
       <div className="flex-1 min-w-0 p-4 md:p-8">
         <div className="flex items-center gap-3 mb-2 lg:hidden">
           <button onClick={() => setSidebarOpen(true)} className="border border-border rounded-lg p-1.5" aria-label="Open menu">
@@ -131,8 +159,9 @@ export default function PostOpportunity() {
               <Button variant="outline" onClick={step === 1 ? undefined : back}>
                 {step === 1 ? 'Cancel' : 'Back'}
               </Button>
-              <Button onClick={step === 5 ? undefined : next}>
-                {step === 5 ? 'Publish Opportunity' : 'Next Step'}
+              {publishError && <p className="text-xs text-red-500 self-center mr-4">{publishError}</p>}
+              <Button onClick={step === 5 ? submitOpportunity : next} disabled={isPublishing}>
+                {step === 5 ? (isPublishing ? 'Publishing...' : 'Publish Opportunity') : 'Next Step'}
               </Button>
             </div>
           </div>
