@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Button from './Button'
 
 const links = [
-  { label: 'Find Talent', href: '#' },
-  { label: 'Find Work', href: '#' },
-  { label: 'How It Works', href: '#' },
-  { label: 'Pricing', href: '#' },
+  { label: 'Find Talent', to: '/profile' },
+  { label: 'Find Work', to: '/opportunities' },
+  { label: 'How It Works', to: '/#how-it-works' },
+  { label: 'Pricing', to: '/signup' },
 ]
 
 export default function Navbar() {
@@ -23,13 +23,13 @@ export default function Navbar() {
 
         <nav className="hidden lg:flex items-center gap-8">
           {links.map((l) => (
-            <a key={l.label} href={l.href} className="text-sm font-medium text-maintext hover:text-primary transition-colors">
+            <Link key={l.label} to={l.to} className="text-sm font-medium text-maintext hover:text-primary transition-colors">
               {l.label}
-            </a>
+            </Link>
           ))}
-          <button className="flex items-center gap-1 text-sm font-medium text-maintext hover:text-primary transition-colors">
-            Resources <ChevronDown size={14} />
-          </button>
+          <Link to="/resources" className="text-sm font-medium text-maintext hover:text-primary transition-colors">
+            Resources
+          </Link>
         </nav>
 
         <div className="hidden lg:flex items-center gap-3">
@@ -49,11 +49,11 @@ export default function Navbar() {
       {open && (
         <div className="lg:hidden border-t border-border bg-white px-4 py-4 space-y-3">
           {links.map((l) => (
-            <a key={l.label} href={l.href} className="block text-sm font-medium text-maintext py-1.5">
+            <Link key={l.label} to={l.to} className="block text-sm font-medium text-maintext py-1.5">
               {l.label}
-            </a>
+            </Link>
           ))}
-          <a href="#" className="block text-sm font-medium text-maintext py-1.5">Resources</a>
+          <Link to="/resources" className="block text-sm font-medium text-maintext py-1.5">Resources</Link>
           <div className="flex gap-3 pt-3 border-t border-border">
             <Link to="/login" className="flex-1 text-center text-sm font-semibold border border-border rounded-xl py-2.5">
               Log in
