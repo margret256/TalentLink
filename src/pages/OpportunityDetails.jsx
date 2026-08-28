@@ -1,16 +1,49 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { ArrowLeft, Building2, MapPin, CheckCircle2 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import Button from '../components/Button'
-import { jobs } from '../data/mockData'
+import { jobsApi } from '../api/jobsApi'
 
 export default function OpportunityDetails() {
   const { id } = useParams()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const job = jobs.find((j) => String(j.id) === id) || jobs[0]
+  const [job, setJob] = useState(null)
   const [applied, setApplied] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [actionError, setActionError] = useState('')
+
+  const apply = async () => {
+    try {
+      await jobsApi.apply(id)
+      setApplied(true)
+    } catch (error) {
+      setActionError(error.message)
+    }
+  }
+
+  const save = async () => {
+    try {
+      await jobsApi.save(id)
+      setSaved(true)
+    } catch (error) {
+      setActionError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    jobsApi.getById(id)
+      .then((data) => setJob(data || null))
+      .catch(() => setJob(null))
+  }, [id])
+
+  if (!job) {
+    return (
+      <div className="flex min-h-screen bg-bg items-center justify-center text-subtext">
+        Loading opportunity...
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -42,13 +75,14 @@ export default function OpportunityDetails() {
             </div>
           </div>
           <div className="flex gap-3 mt-5">
-            <Button onClick={() => setApplied(true)} disabled={applied}>
+            <Button onClick={apply} disabled={applied}>
               {applied ? 'Applied ✓' : 'Apply Now'}
             </Button>
-            <Button variant="outline" onClick={() => setSaved((s) => !s)}>
+            <Button variant="outline" onClick={save} disabled={saved}>
               {saved ? 'Job Saved ✓' : 'Save Job'}
             </Button>
           </div>
+          {actionError && <p className="text-sm text-red-500 mt-3">{actionError}</p>}
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
