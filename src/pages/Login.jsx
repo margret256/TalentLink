@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ShieldCheck, BadgeCheck, Gift } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Button from '../components/Button'
+import { authApi } from '../api/authApi'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -18,12 +19,21 @@ export default function Login() {
     return errs
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
-      navigate('/dashboard')
+      try {
+        const response = await authApi.login({ email: form.email, password: form.password })
+        localStorage.setItem('talentlink_token', response.token)
+        localStorage.setItem('talentlink_user_id', response.user?.id)
+        const role = response.user?.role || 'candidate'
+        localStorage.setItem('talentlink_user_role', role)
+        navigate(role === 'employer' ? '/employer/dashboard' : '/dashboard')
+      } catch (error) {
+        setErrors({ submit: error.message })
+      }
     }
   }
 
@@ -83,8 +93,10 @@ export default function Login() {
                   <input type="checkbox" className="rounded border-border text-primary focus-ring" />
                   Remember me
                 </label>
-                <a href="#" className="text-primary font-medium">Forgot password?</a>
+                <Link to="/signup" className="text-primary font-medium">Forgot password?</Link>
               </div>
+
+              {errors.submit && <p className="text-xs text-red-500 mt-1">{errors.submit}</p>}
 
               <Button type="submit" className="w-full" size="lg">Log In</Button>
 
