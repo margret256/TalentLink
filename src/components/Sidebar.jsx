@@ -25,6 +25,12 @@ const navItems = [
 ]
 
 export default function Sidebar({ open, onClose }) {
+  const logout = () => {
+    localStorage.removeItem('talentlink_token')
+    localStorage.removeItem('talentlink_user_role')
+    localStorage.removeItem('talentlink_user_id')
+  }
+
   return (
     <>
       {open && (
@@ -72,6 +78,7 @@ export default function Sidebar({ open, onClose }) {
         <div className="px-4 py-6">
           <NavLink
             to="/"
+            onClick={logout}
             className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white focus-ring"
           >
             <LogOut size={18} />
