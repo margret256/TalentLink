@@ -1,14 +1,47 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Star, ArrowRight, Code2, Smartphone, Palette, PenTool, Megaphone, FileText } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import Button from '../components/Button'
-import { categories, companies } from '../data/mockData'
+import { jobsApi } from '../api/jobsApi'
 
 const iconMap = { Code2, Smartphone, Palette, PenTool, Megaphone, FileText }
 
 export default function Home() {
+  const location = useLocation()
+  const [categories, setCategories] = useState([])
+  const [companies, setCompanies] = useState([])
+
+  useEffect(() => {
+    jobsApi.getCategories()
+      .then((data) => {
+        const mapped = (data || []).map((item, index) => ({
+          ...item,
+          icon: Object.keys(iconMap)[index % Object.keys(iconMap).length],
+        }))
+        setCategories(mapped)
+      })
+      .catch(() => setCategories([]))
+
+    jobsApi.getCompanies()
+      .then((data) => setCompanies(data || []))
+      .catch(() => setCompanies([]))
+  }, [])
+
+  useEffect(() => {
+    if (!location.hash) return
+
+    const id = location.hash.replace('#', '')
+    const section = document.getElementById(id)
+
+    if (section) {
+      setTimeout(() => {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 50)
+    }
+  }, [location])
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
