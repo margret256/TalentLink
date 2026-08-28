@@ -1,16 +1,21 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import Sidebar from '../components/Sidebar'
 import PageHeader from '../components/PageHeader'
 import ApplicationCard from '../components/ApplicationCard'
 import Button from '../components/Button'
-import { applications } from '../data/mockData'
+import { userApi } from '../api/userApi'
 
 const tabs = ['All', 'Pending', 'Accepted', 'Rejected', 'Withdrawn']
 
 export default function Applications() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('All')
+  const [applications, setApplications] = useState([])
+
+  useEffect(() => {
+    userApi.getApplications().then(setApplications).catch(() => setApplications([]))
+  }, [])
 
   const filtered =
     activeTab === 'All' ? applications : applications.filter((a) => a.status === activeTab)
