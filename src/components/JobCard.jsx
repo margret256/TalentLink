@@ -34,7 +34,7 @@ export default function JobCard({ job }) {
           >
             <Bookmark size={18} className={saved ? 'fill-primary text-primary' : 'text-subtext'} />
           </button>
-          <span className="text-sm font-semibold text-maintext whitespace-nowrap">{job.salaryShort}</span>
+          <span className="text-sm font-semibold text-maintext whitespace-nowrap">{job.salaryShort || job.salary}</span>
         </div>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2 mt-4">
