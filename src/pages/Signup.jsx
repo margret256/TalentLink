@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, ShieldCheck, BadgeCheck, Gift } from 'lucide-react'
 import Navbar from '../components/Navbar'
 import Button from '../components/Button'
+import { authApi } from '../api/authApi'
 
 export default function Signup() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', password: '', role: '', agree: false })
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validate = () => {
     const errs = {}
@@ -22,12 +24,28 @@ export default function Signup() {
     return errs
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
     setErrors(errs)
     if (Object.keys(errs).length === 0) {
-      navigate('/dashboard')
+      setIsSubmitting(true)
+      try {
+        const response = await authApi.signup({
+          fullName: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+        })
+        localStorage.setItem('talentlink_token', response.token)
+        localStorage.setItem('talentlink_user_id', response.userId)
+        localStorage.setItem('talentlink_user_role', response.role || form.role)
+        navigate(form.role === 'employer' ? '/employer/dashboard' : '/dashboard')
+      } catch (error) {
+        setErrors({ submit: error.message })
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -120,7 +138,11 @@ export default function Signup() {
                 {errors.agree && <p className="text-xs text-red-500 mt-1">{errors.agree}</p>}
               </div>
 
-              <Button type="submit" className="w-full" size="lg">Sign Up</Button>
+              {errors.submit && <p className="text-xs text-red-500 mt-1">{errors.submit}</p>}
+
+              <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
+                {isSubmitting ? 'Creating account...' : 'Sign Up'}
+              </Button>
 
               <p className="text-center text-sm text-subtext">
                 Already have an account? <Link to="/login" className="text-primary font-semibold">Log in</Link>
