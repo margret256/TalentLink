@@ -1,7 +1,18 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Search, Bell, MessageSquare, Menu } from 'lucide-react'
+import { userApi } from '../api/userApi'
 
 export default function PageHeader({ title, subtitle, onMenuClick }) {
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    const role = localStorage.getItem('talentlink_user_role') || 'candidate'
+    userApi.getNotifications(role)
+      .then((notifications) => setUnreadCount(notifications.filter((notification) => notification.unread).length))
+      .catch(() => setUnreadCount(0))
+  }, [])
+
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
       <div className="flex items-center gap-3">
@@ -27,10 +38,10 @@ export default function PageHeader({ title, subtitle, onMenuClick }) {
             className="bg-bg border border-border rounded-xl pl-9 pr-4 py-2 text-sm w-56 focus-ring focus:bg-white"
           />
         </div>
-        <button aria-label="Notifications" className="relative h-9 w-9 flex items-center justify-center rounded-xl border border-border text-subtext hover:text-primary focus-ring">
+        <Link to="/notifications" aria-label="Notifications" className="relative h-9 w-9 flex items-center justify-center rounded-xl border border-border text-subtext hover:text-primary focus-ring">
           <Bell size={17} />
-          <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] flex items-center justify-center bg-primary text-white rounded-full">3</span>
-        </button>
+          {unreadCount > 0 && <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 text-[10px] flex items-center justify-center bg-primary text-white rounded-full">{unreadCount}</span>}
+        </Link>
         <button aria-label="Messages" className="relative h-9 w-9 flex items-center justify-center rounded-xl border border-border text-subtext hover:text-primary focus-ring">
           <MessageSquare size={17} />
         </button>
