@@ -1,13 +1,24 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Users, Briefcase, FileCheck2, DollarSign } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from 'recharts'
 import AdminSidebar from '../components/AdminSidebar'
 import PageHeader from '../components/PageHeader'
 import StatCard from '../components/StatCard'
-import { usersGrowth, applicationsByStatus, recentUsers } from '../data/mockData'
+import { adminApi } from '../api/adminApi'
 
 export default function AdminDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [overview, setOverview] = useState(null)
+
+  useEffect(() => {
+    adminApi.getOverview()
+      .then((data) => setOverview(data))
+      .catch(() => setOverview(null))
+  }, [])
+
+  const usersGrowth = overview?.usersGrowth || []
+  const applicationsByStatus = overview?.applicationsByStatus || []
+  const recentUsers = overview?.recentUsers || []
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -16,10 +27,10 @@ export default function AdminDashboard() {
         <PageHeader title="Dashboard Overview" subtitle="May 20 – May 27, 2026" onMenuClick={() => setSidebarOpen(true)} />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <StatCard icon={Users} label="Total Users" value="1,245" change="12% this week" />
-          <StatCard icon={Briefcase} label="Total Opportunities" value="324" change="18% this week" iconBg="bg-blue-50 text-blue-600" />
-          <StatCard icon={FileCheck2} label="Total Applications" value="2,345" change="16% this week" iconBg="bg-purple-50 text-purple-600" />
-          <StatCard icon={DollarSign} label="Total Revenue" value="$12,540" change="20% this week" iconBg="bg-green-50 text-green-600" />
+          <StatCard icon={Users} label="Total Users" value={overview?.totalUsers || 0} change="Current total" />
+          <StatCard icon={Briefcase} label="Total Opportunities" value={overview?.totalOpportunities || 0} change="Current total" iconBg="bg-blue-50 text-blue-600" />
+          <StatCard icon={FileCheck2} label="Total Applications" value={overview?.totalApplications || 0} change="Current total" iconBg="bg-purple-50 text-purple-600" />
+          <StatCard icon={DollarSign} label="Total Revenue" value={overview?.totalRevenue || '$0'} change="Current total" iconBg="bg-green-50 text-green-600" />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -76,7 +87,7 @@ export default function AdminDashboard() {
         <div className="bg-white rounded-2xl border border-border shadow-card p-5 mt-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-maintext">Recent Users</h3>
-            <a href="#" className="text-xs text-primary font-medium">View all</a>
+            <a href="/admin" className="text-xs text-primary font-medium">View all</a>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {recentUsers.map((u, idx) => (
